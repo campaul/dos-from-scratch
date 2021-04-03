@@ -20,6 +20,12 @@ main:
     ; re-enable interrupts
     sti
 
+    ; ensure the video mode is set to 80x25 16 colors
+    ; this also clears the screen
+    mov ah, 0
+    mov al, 0x03
+    int 0x10
+
     ; print a dollar sign
     mov bx, msg
     call print
