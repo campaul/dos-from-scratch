@@ -35,7 +35,7 @@ BIOSParameterBlock = namedtuple('BIOSParameterBlock', [
 def main():
     if len(sys.argv) < 2:
         print(NO_IMAGE)
-        return
+        sys.exit(1)
 
     image = sys.argv[1]
 
@@ -49,11 +49,11 @@ def main():
         ))
     except:
         print(INVALID_IMAGE)
-        return
+        sys.exit(2)
 
     if (bpb.signature != 40 and bpb.signature != 41) or bpb.jump != b'\xeb<\x90':
         print(INVALID_IMAGE)
-        return
+        sys.exit(3)
 
     print('\nOEM Identifier:', bpb.oem_identifier.decode('ascii').strip())
     print('Bytes per Sector:', bpb.bytes_per_sector)

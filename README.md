@@ -9,6 +9,7 @@ Building and running this project requires the following tools:
 - make
 - nasm
 - qemu
+- qemu-utils
 - dosfstools
 
 Additionally, the following reqirements may be necessary to run some optional tools:
