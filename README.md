@@ -4,7 +4,12 @@ Implementing a DOS compatible operating system from scratch
 
 ## Requirements
 
-Building and running this project requires `nasm` and `qemu`.
+Building and running this project requires the following tools:
+
+- make
+- nasm
+- qemu
+- dosfstools
 
 ## Usage
 
