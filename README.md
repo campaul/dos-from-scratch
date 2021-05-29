@@ -11,6 +11,10 @@ Building and running this project requires the following tools:
 - qemu
 - dosfstools
 
+Additionally, the following reqirements may be necessary to run some optional tools:
+
+- python
+
 ## Usage
 
 To run the OS, do `make run`
