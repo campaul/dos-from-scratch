@@ -6,7 +6,8 @@ build/boot.img: build boot.asm
 
 build/disk.img: build/boot.img
 	qemu-img create build/disk.img 1474560B
-	dd if=build/boot.img of=build/disk.img bs=512 count=1 conv=notrunc
+	mkfs.msdos -n DFS build/disk.img
+	dd if=build/boot.img of=build/disk.img bs=1 count=450 seek=62 skip=62 conv=notrunc
 
 .PHONY:
 run: build/disk.img

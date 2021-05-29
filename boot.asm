@@ -3,6 +3,10 @@
 [org 0x7c00]
 
 
+; empty space that will be replaced with FAT information
+times 62-($-$$) db 0
+
+
 main:
     ; disable interrupts
     cli
