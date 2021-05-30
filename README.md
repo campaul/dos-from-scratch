@@ -1,5 +1,7 @@
 # DOS from Scratch
 
+![build](https://github.com/campaul/dos-from-scratch/actions/workflows/dfs.yml/badge.svg)
+
 Implementing a DOS compatible operating system from scratch
 
 ## Requirements
