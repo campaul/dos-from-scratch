@@ -14,6 +14,7 @@ Building and running this project requires the following tools:
 - qemu
 - qemu-utils
 - dosfstools
+- mtools
 
 Additionally, the following reqirements may be necessary to run some optional tools:
 
