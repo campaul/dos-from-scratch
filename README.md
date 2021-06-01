@@ -1,6 +1,7 @@
 # DOS from Scratch
 
 ![build](https://github.com/campaul/dos-from-scratch/actions/workflows/dfs.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Implementing a DOS compatible operating system from scratch
 
