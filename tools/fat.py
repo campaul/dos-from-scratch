@@ -81,14 +81,17 @@ class DirectoryEntry(_DirectoryEntry):
         fields = struct.unpack_from('<8s3sBHHHHxxHHHI', blob)
         return super().__new__(cls, *fields)
 
-    def matches(self, filename):
+    def format(self):
         name = self.filename.decode('UTF-8').strip()
         extension = self.extension.decode('UTF-8').strip()
 
         if extension:
-            return '.'.join([name, extension]) == filename
+            return '.'.join([name, extension])
         else:
-            return name == filename
+            return name
+
+    def matches(self, filename):
+        return filename == self.format()
 
 
 class Directory:
@@ -102,10 +105,13 @@ class Directory:
 
             # If the first byte of the filename is \0x00 the directory entry and
             # all following entries are empty
-            if entry.filename[0] == b'\x00':
+            if entry.filename == b'\x00\x00\x00\x00\x00\x00\x00\x00':
                 break
 
-            entries.append(entry)
+            # Ignore anything created by a VFAT driver
+            if entry.attributes != 15:
+                entries.append(entry)
+
             i += 32
 
         self.entries = entries
@@ -114,6 +120,10 @@ class Directory:
         for entry in self.entries:
             if entry.matches(filename):
                 return entry
+
+    def list(self):
+        for entry in self.entries:
+            print(entry.format())
 
 
 class Disk:
@@ -180,7 +190,7 @@ class Disk:
     def get_file(self, path):
         current = self._root_dir
 
-        for segment in path.split("/"):
+        for segment in [s for s in path.split("/") if s != ""]:
             # TODO: Things that can go wrong:
             # - segment might not exist
             # - current might not be a directory
@@ -193,3 +203,7 @@ class Disk:
 
         # TODO: make sure current isn't a directory
         return current
+
+    def list(self, path):
+        target = self.get_file(path)
+        Directory(target).list()
