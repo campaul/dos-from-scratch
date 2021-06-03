@@ -21,7 +21,10 @@ def main():
     image = sys.argv[1]
     filename = sys.argv[2].upper()
 
-    print(Disk(image).get_file(filename).decode("UTF-8"), end="", flush=True)
+    try:
+        print(Disk(image).get_file(filename).decode("UTF-8"), end="", flush=True)
+    except:
+        print("File Not Found")
 
 
 if __name__ == '__main__':

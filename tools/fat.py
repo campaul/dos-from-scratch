@@ -1,3 +1,7 @@
+# TODO: support other drive sizes
+# TODO: support different cluster sizes
+# TODO: support FAT16
+
 from collections import namedtuple
 import struct
 
@@ -42,7 +46,7 @@ class BIOSParameterBlock(_BIOSParameterBlock):
         return bpb
 
 
-class Fat:
+class FAT:
 
     def __init__(self, blob):
         self.blob = blob
@@ -103,12 +107,13 @@ class Directory:
         while i < len(blob):
             entry = DirectoryEntry(blob[i:i + 32])
 
-            # If the first byte of the filename is \0x00 the directory entry and
+            # If the first byte of the filename is \x00 the directory entry and
             # all following entries are empty
-            if entry.filename == b'\x00\x00\x00\x00\x00\x00\x00\x00':
+            if entry.filename.startswith(b'\x00'):
                 break
 
             # Ignore anything created by a VFAT driver
+            # TODO: properly handle all attribute values
             if entry.attributes != 15:
                 entries.append(entry)
 
@@ -120,6 +125,8 @@ class Directory:
         for entry in self.entries:
             if entry.matches(filename):
                 return entry
+
+        raise FileNotFoundError
 
     def list(self):
         for entry in self.entries:
@@ -138,12 +145,22 @@ class Disk:
 
     @property
     def _fat(self):
-        return Fat(self.blob[512:11*512+1])
+        start = 512
+        end = (self._bpb.sectors_per_fat + 1) * 512
+
+        return FAT(self.blob[start:end])
 
     @property
     def _root_dir(self):
-        # TODO: I think this size varies depending on disk size and FAT type
-        return self.blob[19*512:33*512]
+        # The root directory starts immediately after the FATs
+        # The FATs start immediately after the single boot sector
+        start = ((self._bpb.sectors_per_fat * self._bpb.fats) + 1) * 512
+        # We can caluclate the end of the root directory by multiplying
+        # the number of entries with the size of an entry and adding that
+        # to start.
+        end = start + (32 * self._bpb.directory_entries)
+
+        return self.blob[start:end]
 
     def _get_physical_cluster(self, cluster):
         return self.blob[512*cluster:512 * (cluster + 1)]
@@ -190,20 +207,23 @@ class Disk:
     def get_file(self, path):
         current = self._root_dir
 
-        for segment in [s for s in path.split("/") if s != ""]:
+        for segment in [s for s in path.split('/') if s != '']:
             # TODO: Things that can go wrong:
-            # - segment might not exist
             # - current might not be a directory
             entry = Directory(current).get_entry(segment)
             current = self._get_file_data(
                 entry.first_logical_cluster,
                 entry.file_size,
+                # TODO: add an `is_directory` method instead of relying on
+                # a magic number here.
+                # (alsom add similar methods for other attributes)
                 entry.attributes == 16,
             )
 
-        # TODO: make sure current isn't a directory
         return current
 
     def list(self, path):
+        # TODO: better output information
+        # TODO: this should probably return a list of directory entries
         target = self.get_file(path)
         Directory(target).list()
