@@ -18,7 +18,7 @@ def main():
     if len(sys.argv) > 2:
         filename = sys.argv[2].upper()
     else:
-        filename = ""
+        filename = ''
 
     Disk(image).list(filename)
 
