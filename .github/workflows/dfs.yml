@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt install build-essential nasm qemu qemu-utils dosfstools mtools
+      - run: sudo apt-get update
+      - run: sudo apt-get install build-essential nasm qemu qemu-utils dosfstools mtools
       - run: make build/disk.img
       - run: tools/fat_info.py build/disk.img
       - run: diff README.md <(tools/fat_cat.py build/disk.img README.md)
