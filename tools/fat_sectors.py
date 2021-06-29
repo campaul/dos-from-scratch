@@ -21,8 +21,8 @@ def main():
     filename = sys.argv[2].upper()
 
     try:
-        data, _ = Disk(image).get_file(filename)
-        print(data.decode("UTF-8"), end="", flush=True)
+        _, sectors = Disk(image).get_file(filename)
+        print(sectors)
     except Exception:
         print("File Not Found")
 
