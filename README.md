@@ -9,11 +9,12 @@ Implementing a DOS compatible operating system from scratch
 
 Building and running this project requires the following tools:
 
+- sh
 - make
 - nasm
 - qemu
 - qemu-utils
-- dosfstools
+- dosfstools or newfs_msdos
 - mtools
 
 Additionally, the following reqirements may be necessary to run some optional tools:
