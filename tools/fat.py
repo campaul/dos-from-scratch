@@ -1,6 +1,7 @@
 # TODO: support other drive sizes
 # TODO: support different cluster sizes
 # TODO: support FAT16
+# TODO: don't list root as file
 
 from collections import namedtuple
 import struct
@@ -162,11 +163,15 @@ class Disk:
 
         return self.blob[start:end]
 
+    def _logical_to_physical(self, cluster):
+        # TODO: handle different fat sizes
+        return 33 + cluster - 2
+
     def _get_physical_cluster(self, cluster):
         return self.blob[512*cluster:512 * (cluster + 1)]
 
     def _get_logical_cluster(self, cluster):
-        return self._get_physical_cluster(33 + cluster - 2)
+        return self._get_physical_cluster(self._logical_to_physical(cluster))
 
     def _get_cluster_list(self, cluster):
         clusters = [cluster]
@@ -199,19 +204,20 @@ class Disk:
         if not is_directory:
             data = data[0:size]
 
-        return data
+        return data, [self._logical_to_physical(s) for s in logical_clusters]
 
     def get_info(self):
         return self._bpb
 
     def get_file(self, path):
         current = self._root_dir
+        clusters = []
 
         for segment in [s for s in path.split('/') if s != '']:
             # TODO: Things that can go wrong:
             # - current might not be a directory
             entry = Directory(current).get_entry(segment)
-            current = self._get_file_data(
+            current, clusters = self._get_file_data(
                 entry.first_logical_cluster,
                 entry.file_size,
                 # TODO: add an `is_directory` method instead of relying on
@@ -220,10 +226,10 @@ class Disk:
                 entry.attributes == 16,
             )
 
-        return current
+        return current, clusters
 
     def list(self, path):
         # TODO: better output information
         # TODO: this should probably return a list of directory entries
-        target = self.get_file(path)
+        target, _ = self.get_file(path)
         Directory(target).list()
