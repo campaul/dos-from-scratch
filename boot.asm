@@ -3,6 +3,11 @@
 [org 0x7c00]
 
 
+; label for where to place the stack
+; since it grows towards 0 so the top of the bootloader is a good locataion
+stack:
+
+
 ; empty space that will be replaced with FAT information
 times 62-($-$$) db 0
 
@@ -18,7 +23,7 @@ main:
         mov ds, ax
         mov es, ax
         mov ss, ax
-        mov sp, main
+        mov sp, stack
         cld
 
     ; re-enable interrupts
@@ -43,11 +48,52 @@ main:
     mov cx, 256
     call print_mem
 
-    ; print disk info for first floppy disk
-    mov dl, 0x00
-    call print_disk_info
+    ; reset disk system
+    mov ah, 0
+    mov dl, 0
+    int 0x13
+    jc error
 
-    ; "It's now safe to turn off your computer."
+    ; load first sector of root directory
+    ; TODO: compute location of root directory
+    mov ah, 0x02
+    mov al, 1
+    mov ch, 0
+    mov dh, 1
+    mov cl, 2
+    mov dl, 0
+    mov bx, 0x500
+    int 0x13
+    jc error
+
+    ; load IO.SYS
+    ; TODO: make sure IO.SYS is the first file in the root dir
+    ; TODO: compute location of IO.SYS
+    mov ah, 0x02
+    mov al, 3
+    mov ch, 0  ; cylinder
+    mov dh, 1  ; head
+    mov cl, 16 ; sector
+    mov dl, 0  ; drive
+    mov bx, 0x700
+    int 0x13
+    jc error
+
+    ; setup information IO.SYS needs
+    ; TODO: figure out what the value in dx is
+    mov ax, 0       ; media descriptor (0x7c15)
+    mov bx, 0x21    ; drive number (0x7c24)
+    mov cx, 0xf000  ; IO.SYS sector
+    mov dx, 0       ; ???
+
+    ; jump to IO.SYS
+    jmp 0x70:0
+
+
+error:
+    mov bx, ERROR
+    call print
+
     hlt
     jmp $-1
 
@@ -159,95 +205,11 @@ print_mem:
     ret
 
 
-; Loads disk info into the I_CYLINDERS, I_HEADS, and I_SECTORS
-; labels
-; dl: drive index
-load_disk_info:
-    pusha
-
-    mov ah, 0x08
-    int 0x13
-
-    jc disk_error
-
-    ; isolate bits [5:0] of CX
-    ; this is the number of sectors
-    mov ax, cx
-    and ax, 0x3f
-    mov [I_SECTORS], ax
-
-    ; isolate bits [15:8] of DX
-    ; this is the number of heads - 1
-    mov al, dh
-    mov ah, 0
-    inc ax
-    mov [I_HEADS], ax
-
-    ; isolate bits [7:6][15-8] of CX
-    ; this is the number of cylinders - 1
-    mov al, ch
-    mov ah, cl
-    shr ah, 6
-    inc ax
-    mov [I_CYLINDERS], ax
-
-    popa
-    ret
-
-
-; Prints disk info
-; dl: drive index
-print_disk_info:
-    pusha
-
-    call load_disk_info
-
-    mov bx, CYLINDERS
-    call print
-    mov ax, [I_CYLINDERS]
-    call print_hex
-    mov bx, LINE_BREAK
-    call print
-
-    mov bx, HEADS
-    call print
-    mov ax, [I_HEADS]
-    call print_hex
-    mov bx, LINE_BREAK
-    call print
-
-    mov bx, SECTORS
-    call print
-    mov ax, [I_SECTORS]
-    call print_hex
-    mov bx, LINE_BREAK
-    call print
-
-    popa
-    ret
-
-
-disk_error:
-    mov bx, DISK_ERROR_MESSAGE
-    call print
-    hlt
-    jmp $-1
-
-
-; allocate some memory to store disk info
-I_CYLINDERS: dw 0
-I_HEADS: dw 0
-I_SECTORS: dw 0
-
-
 ; strings
 SPACE: db " $"
 LINE_BREAK: db 0x0a, 0x0d, "$"
 WELCOME_MESSAGE: db "Loading DOS from Scratch...$"
-DISK_ERROR_MESSAGE: db "Error Reading Disk!$"
-CYLINDERS: db "Cylinders: $"
-HEADS: db "Heads: $"
-SECTORS: db "Sectors: $"
+ERROR: db "Error loading OS!"
 
 
 ; padding
