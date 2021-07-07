@@ -25,6 +25,8 @@ Additionally, the following reqirements may be necessary to run some optional to
 
 To run the OS, do `make run`
 
+If you have an MS-DOS boot disk, you can place it at `msdos/disk.img` and do `make run_msdos` to run that disk using the DOS from Scratch bootloader.
+
 ## Blog Posts
 
 The development of this project is being documented in a series of [blog posts](https://toast.zeroflag.net/dos-from-scratch-introduction).
