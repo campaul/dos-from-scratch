@@ -1,11 +1,13 @@
 build:
 	mkdir build
 
-build/boot.img: build boot.asm
+build/boot.img: build boot.asm lib/print.asm lib/debug.asm
 	nasm -fbin boot.asm -o build/boot.img
 
-build/IO.SYS: build io.asm
-	nasm -fbin io.asm -o build/IO.SYS
+build/IO.SYS: build io.asm lib/print.asm lib/debug.asm
+	nasm -fbin io.asm -o build/IO.SYS && \
+	(truncate -s 2k build/IO.SYS || \
+	(rm build/IO.SYS && false))
 
 build/disk.img: build/boot.img build/IO.SYS
 	# TODO: make IO.SYS first entry in root directory
@@ -24,11 +26,11 @@ build/msdos.img: build/boot.img msdos/disk.img
 
 .PHONY:
 run: build/disk.img
-	qemu-system-x86_64 -drive format=raw,if=floppy,file=build/disk.img
+	qemu-system-x86_64 -drive format=raw,if=floppy,file=build/disk.img -monitor stdio
 
 .PHONY:
 run_msdos: build/msdos.img
-	qemu-system-x86_64 -drive format=raw,if=floppy,file=build/msdos.img
+	qemu-system-x86_64 -drive format=raw,if=floppy,file=build/msdos.img -monitor stdio
 
 .PHONY:
 clean:
