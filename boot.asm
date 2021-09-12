@@ -80,11 +80,11 @@ main:
     jc error
 
     ; setup information IO.SYS needs
-    ; TODO: figure out what the value in dx is
+    ; TODO: figure out what the values in cx and dx are
     mov ax, 0       ; media descriptor (0x7c15)
     mov bx, 0x21    ; drive number (0x7c24)
-    mov cx, 0xf000  ; IO.SYS sector
-    mov dx, 0       ; ???
+    mov cx, 0xf000  ; ??? (possibly unused)
+    mov dx, 0       ; ??? (possibly partition number)
 
     ; jump to IO.SYS
     jmp 0x70:0
