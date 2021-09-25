@@ -3,16 +3,48 @@
 [org 0]
 
 
+; Make sure DS and ES matches CS
+mov ax, cs
+mov ds, ax
+mov es, ax
+
+
+; Load the rest of IO.SYS
+mov si, IO_SYS
+call get_first_sector
+
+; Skip past the first 3 sectors that the bootloader already loaded
+call get_fat_entry
+call get_fat_entry
+call get_fat_entry
+
+mov cx, 0
+load_io_sys_loop:
+    push ax
+    push cx
+    add ax, 31
+    mov bx, FOURTH_SECTOR
+    add bx, cx
+    ; TODO: this is hard coded for 1 sector per cluster
+    mov cl, 1
+    call load_sectors
+    pop cx
+    pop ax
+
+    call get_fat_entry
+    add cx, 512
+
+    cmp ax, 0x0fff  ; TODO: there are more values this could be
+    jnz load_io_sys_loop
+
+
 ; Register int 0x21 handler
+push ds
 push 0
 pop ds
 mov word [0x86], cs
 mov word [0x84], dos_api_handler
-
-
-; Make sure DS matches CS
-mov ax, cs
-mov ds, ax
+pop ds
 
 
 ; Print welcome message
@@ -26,7 +58,19 @@ hlt
 jmp $-1
 
 
-WELCOME_MESSAGE: db "Welcome to DOS from Scratch!$"
+%include "lib/string.asm"
+%include "lib/disk.asm"
+%include "lib/fat.asm"
+
+
+IO_SYS: db "IO      SYS"
+
+
+; Pad file to 3 sectors to ensure code above doesn't exceed that length
+times 1536-($-$$) db 0
+
+
+FOURTH_SECTOR:
 
 
 dos_api_handler:
@@ -78,3 +122,10 @@ unknown_function_code:
 
 %include "lib/print.asm"
 %include "lib/debug.asm"
+
+
+WELCOME_MESSAGE: db "Welcome to DOS from Scratch!", 0x0a, 0x0d, "$"
+
+
+FAT_WINDOW: times 1536 db 0
+DIRECTORY_WINDOW: times 512 db 0

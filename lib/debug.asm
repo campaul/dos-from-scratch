@@ -1,4 +1,16 @@
-; Prints a register value in hexadecimal
+; Prints the value of the al register in hexadecimal
+; al: the value to print
+print_hex_byte:
+    pusha
+
+    mov ah, 0
+    call print_hex
+
+    popa
+    ret
+
+
+; Prints the value of the ax register in hexadecimal
 ; ax: the value to print
 print_hex:
     pusha
