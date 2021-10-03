@@ -56,28 +56,18 @@ main:
 
     ; load first sector of root directory
     ; TODO: compute location of root directory
-    mov ah, 0x02
-    mov al, 1
-    mov ch, 0
-    mov dh, 1
-    mov cl, 2
-    mov dl, 0
+    mov ax, 19
     mov bx, 0x500
-    int 0x13
-    jc error
+    mov cl, 1
+    call load_sectors
 
     ; load IO.SYS
     ; TODO: make sure IO.SYS is the first file in the root dir
     ; TODO: compute location of IO.SYS
-    mov ah, 0x02
-    mov al, 3
-    mov ch, 0  ; cylinder
-    mov dh, 1  ; head
-    mov cl, 16 ; sector
-    mov dl, 0  ; drive
+    mov ax, 33
     mov bx, 0x700
-    int 0x13
-    jc error
+    mov cl, 3
+    call load_sectors
 
     ; setup information IO.SYS needs
     ; TODO: figure out what the values in cx and dx are
@@ -100,11 +90,12 @@ error:
 
 %include "lib/print.asm"
 %include "lib/debug.asm"
+%include "lib/disk.asm"
 
 
 ; strings
 WELCOME_MESSAGE: db "Loading DOS from Scratch...$"
-ERROR: db "Error loading OS!"
+ERROR: db "Error loading OS!$"
 
 
 ; padding
