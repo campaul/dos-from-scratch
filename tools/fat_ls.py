@@ -18,9 +18,18 @@ def main():
     if len(sys.argv) > 2:
         filename = sys.argv[2].upper()
     else:
-        filename = ''
+        print("no filename!")
+        sys.exit(1)
 
-    Disk(image).list(filename)
+    if filename == "/":
+        filename = ""
+
+    if len(sys.argv) == 4:
+        partition = int(sys.argv[3])
+    else:
+        partition = 0
+
+    Disk(image).get_volume(partition).list(filename)
 
 
 if __name__ == '__main__':
