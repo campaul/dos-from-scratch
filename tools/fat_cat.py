@@ -17,11 +17,16 @@ def main():
         print(NO_FILENAME)
         sys.exit(2)
 
+    if len(sys.argv) == 4:
+        partition = int(sys.argv[3])
+    else:
+        partition = 0
+
     image = sys.argv[1]
     filename = sys.argv[2].upper()
 
     try:
-        data, _ = Disk(image).get_file(filename)
+        data, _ = Disk(image).get_volume(partition).get_file(filename)
         print(data.decode("UTF-8"), end="", flush=True)
     except Exception:
         print("File Not Found")

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from collections import namedtuple
+import struct
 import sys
 
 from fat import Disk
@@ -15,7 +16,18 @@ def main():
 
     image = sys.argv[1]
 
-    bpb = Disk(image).get_info()
+    if len(sys.argv) == 3:
+        partition = int(sys.argv[2])
+    else:
+        partition = 0
+
+    disk = Disk(image)
+    try:
+        volume = disk.get_volume(partition)
+        bpb = volume.get_info()
+    except:
+        print("Invalid disk image or partition!")
+        sys.exit(1)
 
     print('\nOEM Identifier:', bpb.oem_identifier.decode('ascii').strip())
     print('Bytes per Sector:', bpb.bytes_per_sector)
